@@ -20,21 +20,53 @@ TrainSetMed = TrainSet[1:50,]
 ```
 Lets define the simple polynomial model for TrainSetSmall
 First line creates linear model for relation of Y and 7-degree polynomials of X1
-Second line creates predictions using this model based on TrainSetSmall
+Second line creates predictions data frame by combining the X1 column from TrainSetSmall and predictions made using model
+Third line renames column "X2" (name created automatically) as "Y"
 ```R
 TSS_model_poly_7 = lm(Y ~ poly(X1, 7),data=TrainSetSmall)
-TSS_model_poly_7_predictions = predict(TSS_model_poly_7, TrainSetSmall)
+TSS_model_poly_7_predictions = data.frame(t(rbind(TrainSetSmall$X1,predict(TSS_model_poly_7, TrainSetSmall))))
+names(TSS_model_poly_7_predictions)[names(TSS_model_poly_7_predictions)=="X2"] <- "Y"
 ```
 Visualization of this data
 First line loads ggplot library to make diagrams.
 It can be installed using command: install.packages("ggplot2")
 Second line generates simple plot with points showing data.
-Third line saves the diagram as png image.
 ```R
 library(ggplot2)
 ggplot(TrainSetSmall, aes(x=X1, y=Y)) + geom_point()
-ggsave("LRDaiagram1.png")
+# can be saved as png using: ggsave("LRDaiagram1.png")
 ```
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram1.png "First LR Diagram")
+
+Now some modifications - the line showing the linear model is added. Color is red and it is slightly transparent.
+Next line sets the range of the y axis
+Final one saves diagram
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + geom_point()  + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), size = 1, se=FALSE, color="#FF9999", alpha=1/10) + 
+  coord_cartesian(ylim=c(1, 2))
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram2.png "Second LR Diagram")
+
+Another modification - Let's add the difference between observed value (Y from Train Set Small) and predicted value (Y from TSS_model_poly_7_predictions).
+Fifth line adds data points from TSS_model_poly_7_predictions set.
+Sixth creates a red dotted line (linetype=2) for each X1 value from TrainSetSmall between Y of TrainSetSmall and Y of TSS_model_poly_7_predictions.
+Last line adds the tile to the plot and names to axes.
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + 
+  geom_point()  + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), size = 1, se=FALSE, color="#FF9999", alpha=1/10) + 
+  coord_cartesian(ylim=c(1, 2)) +
+  geom_point(data=TSS_model_poly_7_predictions,color="red") +
+  geom_segment(aes(x=TrainSetSmall$X1, y=TrainSetSmall$Y, xend=TrainSetSmall$X1, yend=TSS_model_poly_7_predictions$Y), color="red", linetype=2) +
+  labs(title = "7th level polynomial and difference between observed and predicted values", x = "X value", y="Y value" )
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram3.png "Second LR Diagram")
+
+
+  
 
 
 
