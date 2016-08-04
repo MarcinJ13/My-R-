@@ -1,0 +1,264 @@
+#Sample Plots in R for Linear Regression
+
+##Loading Sample data
+
+First load sample data. Sample data was created using Micorsoft Excel. 
+First line changes working directory to the location of the csv file.
+Then csv file is loaded. Data is already split to TRAIN,VALIDATION and TEST sets as additional column.
+Three subsets are created.
+```R
+setwd("C:/your/file/directory")
+Sample1 = read.csv("Sample_Data_single_X.csv")
+TrainSet = subset(Sample1,Set=="TRAIN")
+ValidationSet = subset(Sample1,Set=="VALIDATION")
+TestSet = subset(Sample1,Set=="TEST")
+```
+Train set has 2500 rows.
+To use smaller sets three subsets are defined for 5,20 and 50 rows.
+```R
+TrainSetTiny = TrainSet[1:5,]
+TrainSetSmall = TrainSet[1:20,]
+TrainSetMed = TrainSet[1:50,]
+```
+
+##First model
+
+Lets define the simple polynomial model for TrainSetSmall
+First line creates linear model for relation of Y and 7-degree polynomials of X1
+Second line creates predictions data frame by combining the X1 column from TrainSetSmall and predictions made using model
+Third line renames column "X2" (name created automatically) as "Y"
+```R
+TSS_model_poly_7 = lm(Y ~ poly(X1, 7),data=TrainSetSmall)
+TSS_model_poly_7_predictions = data.frame(t(rbind(TrainSetSmall$X1,predict(TSS_model_poly_7, TrainSetSmall))))
+names(TSS_model_poly_7_predictions)[names(TSS_model_poly_7_predictions)=="X2"] <- "Y"
+```
+
+## Visualization of data
+
+First line loads ggplot library to make diagrams.
+It can be installed using command: install.packages("ggplot2")
+Second line generates simple plot with points showing data.
+```R
+library(ggplot2)
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + geom_point()
+# can be saved as png using: ggsave("LRDaiagram1.png")
+```
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram1.png "First LR Diagram")
+
+
+Now some modifications - the line showing the linear model is added. Color is red and it is slightly transparent.
+Next line sets the range of the y axis
+Final one saves diagram
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + geom_point()  + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), size = 1, se=FALSE, color="#FF9999", alpha=1/10) + 
+  coord_cartesian(ylim=c(1, 2))
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram2.png "Second LR Diagram")
+
+
+Another modification - Let's add the difference between observed value (Y from Train Set Small) and predicted value (Y from TSS_model_poly_7_predictions).
+Fifth line adds data points from TSS_model_poly_7_predictions set.
+Sixth creates a red dotted line (linetype=2) for each X1 value from TrainSetSmall between Y of TrainSetSmall and Y of TSS_model_poly_7_predictions.
+Last line adds the tile to the plot and names to axes.
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + 
+  geom_point()  + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), size = 1, se=FALSE, color="#FF9999", alpha=1/10) + 
+  coord_cartesian(ylim=c(1, 2)) +
+  geom_point(data=TSS_model_poly_7_predictions,color="red") +
+  geom_segment(aes(x=TrainSetSmall$X1, y=TrainSetSmall$Y, xend=TrainSetSmall$X1, yend=TSS_model_poly_7_predictions$Y), color="red", linetype=2) +
+  labs(title = "7th level polynomial and difference between observed and predicted values", x = "X value", y="Y value" )
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram3.png "Second LR Diagram")
+
+
+## Multiple models
+
+First create 10 polynomial models for TrainSetSmall:
+```R
+TSSlm1 = lm(Y ~ poly(X1, 1), data=TrainSetSmall)
+TSSlm2 = lm(Y ~ poly(X1, 2), data=TrainSetSmall)
+TSSlm3 = lm(Y ~ poly(X1, 3), data=TrainSetSmall)
+TSSlm4 = lm(Y ~ poly(X1, 4), data=TrainSetSmall)
+TSSlm5 = lm(Y ~ poly(X1, 5), data=TrainSetSmall)
+TSSlm6 = lm(Y ~ poly(X1, 6), data=TrainSetSmall)
+TSSlm7 = lm(Y ~ poly(X1, 7), data=TrainSetSmall)
+TSSlm8 = lm(Y ~ poly(X1, 8), data=TrainSetSmall)
+TSSlm9 = lm(Y ~ poly(X1, 9), data=TrainSetSmall)
+TSSlm10 = lm(Y ~ poly(X1, 10), data=TrainSetSmall)
+```
+
+Now lets create predictions for those models as well as baseline model
+Baseline is simply horizontal line that goes through mean value.
+
+```R
+#baseline
+TSSp0 = data.frame(t(rbind(TrainSetSmall$X1,rep(mean(TrainSetSmall$Y),each=nrow(TrainSetSmall)))))
+names(TSSp0)[names(TSSp0)=="X2"] <- "Y"
+#the rest of models
+TSSp1 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm1, TrainSetSmall))))
+names(TSSp1)[names(TSSp1)=="X2"] <- "Y"
+TSSp2 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm2, TrainSetSmall))))
+names(TSSp2)[names(TSSp2)=="X2"] <- "Y"
+TSSp3 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm3, TrainSetSmall))))
+names(TSSp3)[names(TSSp3)=="X2"] <- "Y"
+TSSp4 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm4, TrainSetSmall))))
+names(TSSp4)[names(TSSp4)=="X2"] <- "Y"
+TSSp5 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm5, TrainSetSmall))))
+names(TSSp5)[names(TSSp5)=="X2"] <- "Y"
+TSSp6 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm6, TrainSetSmall))))
+names(TSSp6)[names(TSSp6)=="X2"] <- "Y"
+TSSp7 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm7, TrainSetSmall))))
+names(TSSp7)[names(TSSp7)=="X2"] <- "Y"
+TSSp8 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm8, TrainSetSmall))))
+names(TSSp8)[names(TSSp8)=="X2"] <- "Y"
+TSSp9 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm9, TrainSetSmall))))
+names(TSSp9)[names(TSSp9)=="X2"] <- "Y"
+TSSp10 = data.frame(t(rbind(TrainSetSmall$X1,predict(TSSlm10, TrainSetSmall))))
+names(TSSp10)[names(TSSp10)=="X2"] <- "Y"
+```
+
+##Changes in RSS
+
+RSS stands for Residual sum of squares. It is sum of squared differences between observed and predicted value.
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/Equation1.jpg "Residual sum of squares")
+
+where y hat is the predicted value and y is observed value. subscript i indicates that this is value for i-th observation. i goes from 1 to N, where N is number of all observations.
+
+As we have predictions for differen polynomial, lets see changes in RSS.
+First step is to build a data frame to hold values.
+First line creates vector of values from 0 to 10.
+Second creates vector of eleven 0 values.
+Last line puts it together as one data frame.
+```R
+poly = seq(0,10)
+RSS = rep.int(0,11)
+polyRSS = data.frame(poly,SSE)
+```
+Now let's update this dataframe with values.
+Each line updates column RSS of polyRSS data frame. 
+Value in brackets allows to select specific row (so [polyRSS$poly == 5] selects only row where poly colum has value equal 5).
+```R
+polyRSS$RSS[(polyRSS$poly == 0)]= sum((TrainSetSmall$Y-TSSp0$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 1)]= sum((TrainSetSmall$Y-TSSp1$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 2)]= sum((TrainSetSmall$Y-TSSp2$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 3)]= sum((TrainSetSmall$Y-TSSp3$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 4)]= sum((TrainSetSmall$Y-TSSp4$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 5)]= sum((TrainSetSmall$Y-TSSp5$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 6)]= sum((TrainSetSmall$Y-TSSp6$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 7)]= sum((TrainSetSmall$Y-TSSp7$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 8)]= sum((TrainSetSmall$Y-TSSp8$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 9)]= sum((TrainSetSmall$Y-TSSp9$Y)^2)
+polyRSS$RSS[(polyRSS$poly == 10)]= sum((TrainSetSmall$Y-TSSp10$Y)^2)
+```
+
+Time for diagram. Diagram below shows how the RSS drops down as the polynomial level goes up.
+```R
+ggplot(polyRSS, aes(x=poly, y=RSS)) + 
+  geom_line() + 
+  geom_point() +
+  labs(title = "RSS vs polynomial level for TrainSetSmall ", x = "Polynomial level", y="Residual sum of squares" )
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram4.png "RSS vs level")
+
+From diagram above it can be observed that increasing polynomial decreases RSS. 
+However it is not always good thing. This brings another subject:
+
+##Overfiting
+
+Lets draw plot of Train Set and predicted level 3 polynomial.
+
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) +
+    geom_point()   + 
+    stat_smooth(method = "lm", formula = y ~ poly(x, 3), se=FALSE, color="#9999FF",alpha=0.5, size=2 )   + 
+    coord_cartesian(ylim=c(1, 2))   + 
+    geom_point(data=TSSp3,color="red", alpha=1/2, shape=4)      +  
+    geom_segment(aes(x=TrainSetSmall$X1, y=TrainSetSmall$Y, xend=TrainSetSmall$X1, yend=TSSp3$Y), color="red", linetype=2, alpha=1/2)+
+    labs(title = "TrainSetSmall values vs prediction of 3rd degree polynomial", x = "X value", y="Y value" )
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram5.png "3rd degree polynomial errors")
+
+The red dotted lines are the residuals. 
+Now let's compare it with 7th degree polynomial 
+
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) +
+  geom_point()   + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), se=FALSE, color="#9999FF",alpha=0.5, size=2 )   + 
+  coord_cartesian(ylim=c(1, 2))   + 
+  geom_point(data=TSSp7,color="red", alpha=1/2, shape=4)      +  
+  geom_segment(aes(x=TrainSetSmall$X1, y=TrainSetSmall$Y, xend=TrainSetSmall$X1, yend=TSSp7$Y), color="red", linetype=2, alpha=1/2)+
+  labs(title = "TrainSetSmall values vs prediction of 7th degree polynomial", x = "X value", y="Y value" )
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram6.png "7th degree polynomial errors")
+
+Great the residuals are getting smaller so it is closer fit. Also the line looks like correct estimation of the true function (the one that was used to geneare data or in real life the function that defines relationship)
+
+Let's do one more. This time for 9th degree polynomial.
+
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) +
+  geom_point()   + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 9), se=FALSE, color="#9999FF",alpha=0.5, size=2 )   + 
+  coord_cartesian(ylim=c(1, 2))   + 
+  geom_point(data=TSSp9,color="red", alpha=1/2, shape=4)      +  
+  geom_segment(aes(x=TrainSetSmall$X1, y=TrainSetSmall$Y, xend=TrainSetSmall$X1, yend=TSSp9$Y), color="red", linetype=2, alpha=1/2)+
+  labs(title = "TrainSetSmall values vs prediction of 9th degree polynomial", x = "X value", y="Y value" )
+```
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram7.png "9th degree polynomial errors")
+
+Well it does not look so good anymore. While residuals (differences between observed and predicted values) are getting smaller, the line does not make sense anymore. There is a big dip around X=0.8. This line fits the Train data better, but it probably will not do so well when we use it on test set. It is possible that test set will have some points that will be hight above that dip which would lead to high error. 
+
+Let's plot all polynomials at once.
+
+```R
+ggplot(TrainSetSmall, aes(x=X1, y=Y))  + geom_point() +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 1), size = 1, se=FALSE,  alpha=1/10, aes(color=" 1st degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), size = 1, se=FALSE,  alpha=1/10, aes(color=" 2nd degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 3), size = 1, se=FALSE,  alpha=1/10, aes(color=" 3rd degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 4), size = 1, se=FALSE,  alpha=1/10, aes(color=" 4th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 5), size = 1, se=FALSE,  alpha=1/10, aes(color=" 5th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 6), size = 1, se=FALSE,  alpha=1/10, aes(color=" 6th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 7), size = 1, se=FALSE,  alpha=1/10, aes(color=" 7th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 8), size = 1, se=FALSE,  alpha=1/10, aes(color=" 8th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 9), size = 1, se=FALSE,  alpha=1/10, aes(color=" 9th degree"))+
+  stat_smooth(method = "lm", formula = y ~ poly(x, 10), size = 1, se=FALSE, alpha=1/10, aes(color="10th degree"))+
+  coord_cartesian(ylim=c(1, 2))+
+  scale_colour_discrete("Step sizes")
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram7.png "all polynomials")
+
+So some of lower degree polynomials are looking as better fit to real-values or test set even that the RSS is slightly higher.
+
+#EError types.
+
+Errors between our model and values that should be predicted (using test data) consist of three types:
+
+###Model Bias
+
+Model Bias is a difference in values between values predicted by real function and values predicted by model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
