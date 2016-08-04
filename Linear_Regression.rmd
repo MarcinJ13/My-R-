@@ -1,0 +1,41 @@
+#Linear Regression 1
+
+First load sample data. Sample data was created using Micorsoft Excel. 
+First line changes working directory to the location of the csv file.
+Then csv file is loaded. Data is already split to TRAIN,VALIDATION and TEST sets as additional column.
+Three subsets are created.
+```R
+setwd("C:/your/file/directory")
+Sample1 = read.csv("Sample_Data_single_X.csv")
+TrainSet = subset(Sample1,Set=="TRAIN")
+ValidationSet = subset(Sample1,Set=="VALIDATION")
+TestSet = subset(Sample1,Set=="TEST")
+```
+Train set has 2500 rows.
+To use smaller sets three subsets are defined for 5,20 and 50 rows.
+```R
+TrainSetTiny = TrainSet[1:5,]
+TrainSetSmall = TrainSet[1:20,]
+TrainSetMed = TrainSet[1:50,]
+```
+Lets define the simple polynomial model for TrainSetSmall
+First line creates linear model for relation of Y and 7-degree polynomials of X1
+Second line creates predictions using this model based on TrainSetSmall
+```R
+TSS_model_poly_7 = lm(Y ~ poly(X1, 7),data=TrainSetSmall)
+TSS_model_poly_7_predictions = predict(TSS_model_poly_7, TrainSetSmall)
+```
+Visualization of this data
+First line loads ggplot library to make diagrams.
+It can be installed using command: install.packages("ggplot2")
+Second line generates simple plot with points showing data.
+Third line saves the diagram as png image.
+```R
+library(ggplot2)
+ggplot(TrainSetSmall, aes(x=X1, y=Y)) + geom_point()
+ggsave("LRDaiagram1.png")
+```
+
+
+
+
