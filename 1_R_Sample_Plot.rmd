@@ -235,7 +235,7 @@ ggplot(TrainSetSmall, aes(x=X1, y=Y))  + geom_point() +
   scale_colour_discrete("Step sizes")
 ```
 
-![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram7.png "all polynomials")
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/LRDaiagram8.png "all polynomials")
 
 So some of lower degree polynomials are looking as better fit to real-values or test set even that the RSS is slightly higher.
 
