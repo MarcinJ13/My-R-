@@ -1,0 +1,75 @@
+#Shading Trick for ggplot
+
+This is the trick I have used to shade space between two functions.
+
+First let's prepare function to be drawn.
+
+```R
+WeightFunct <- function(x, weights) {
+  y=weights[1]
+  for (i in 2:length(weights)) {
+    y = y+weights[i]*(x^(i-1))
+  }
+  return(y)
+}
+```
+
+This will create the function that accepts x and weights. first weight is intercept. Subsequent weights are for powers of X.
+For example if you pass weights -1,0.2,0.3,-0.1 it will be basically function y= -1 + 0.2*x^1 + 0.3*x^2 - 0.1*x^3
+
+so let's try this 
+
+```R
+simple_weights_1 = matrix(  c(-1, 0.2, 0.3, -0.1),  nrow=1,  ncol=4) 
+emptydata <- data.frame()
+ggplot(emptydata) + xlim(-5, 5) + ylim(-5, 5) +
+  stat_function(fun = WeightFunct,  args = list(weights = simple_weights_1), aes(color="simple_weights_1"))
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/STDaiagram1.png "First ST Diagram")
+
+
+Now example with two function (with different weights)
+
+```R
+simple_weights_1 = matrix(  c(0.1, -0.5, -0.025, 0.05),  nrow=1,  ncol=4) 
+simple_weights_2 = matrix(  c(1, -0.5, -0.002, 0.012),  nrow=1,  ncol=4) 
+emptydata <- data.frame()
+g_base <- ggplot(emptydata) + xlim(-5, 5) + ylim(-5, 5) +
+  stat_function(fun = WeightFunct,  args = list(weights = simple_weights_1), aes(color="simple_weights_1"))+
+  stat_function(fun = WeightFunct,  args = list(weights = simple_weights_2), aes(color="simple_weights_2"))
+g_base
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/STDaiagram2.png "Second ST Diagram")
+
+The problem is how to shade area between those two functions. The trick is to build the diagram, extract points and use them to create ribbon
+
+```R
+g_base_build <- ggplot_build(g_base)
+```
+
+Now we can extract data from this buld. it has g_base_build$data sections. Now we can extract part of it (in this example x and y from part 1 and y from part 2)
+
+```R
+base_dataframe <- data.frame(x = g_base_build$data[[1]]$x,
+                  ymin = g_base_build$data[[1]]$y,
+                  ymax = g_base_build$data[[2]]$y) 
+```
+
+Finally we can use this data frame to create ribbon in our original diagram.
+
+
+```R
+ggplot(emptydata)  + xlim(-5, 5) + ylim(-5, 5) + 
+  geom_ribbon(data = base_dataframe, aes(x = x, ymin = ymin, ymax = ymax),fill = "grey", alpha = 0.4)+
+  stat_function(fun = WeightFunct,  args = list(weights = simple_weights_1), aes(color="simple_weights_1"))+
+  stat_function(fun = WeightFunct,  args = list(weights = simple_weights_2), aes(color="simple_weights_2"))
+```
+
+![alt text](https://raw.githubusercontent.com/MarcinJ13/R_Machine_Learning/master/STDaiagram3.png "Final ST Diagram")
+
+I'm fully aware that this is not perfect solution but at this moment best I could find for creating shaded area between two functions.
+
+
+
