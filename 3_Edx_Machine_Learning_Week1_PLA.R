@@ -1,5 +1,5 @@
 #Initial seed (this will create other seeds)
-startseed <- 29
+startseed <- 172
 set.seed(startseed)
 
 # how many data points to generate at each attempt
@@ -22,8 +22,16 @@ my_results = data.frame (attempt=numeric(0), seed=numeric(0),
                          nrofmcmismatches=numeric(0), nrofmc = numeric(0))
 
 
+#create progress bar
+mpb = txtProgressBar(min=0,max=a, initial=0, char="#", style=3)  
+
 for (attemptnr in 1:a) {
 
+
+  #update progress bar
+  setTxtProgressBar(mpb, attemptnr)  
+  
+  
 #define seed for this run (this is done automatically based on startseed)
 
 thisrunseed = round(runif(1, min=1, max=10000))
@@ -189,6 +197,10 @@ my_results = rbind(my_results,
 
 } #end of attempt loop
 
+#close progres bar
+close(mpb)
+
+
 
 names(my_results) <- c("attempt_nr","seed_for_this_run", "iterations", "nr_of_data_points",
                        "check_how_many_false","check_how_many_true","monte_carlo_mismatches", 
@@ -219,6 +231,5 @@ ggplot(pla_datamc, aes(x=x1, y=x2,color=match))+geom_point(size=1)+
   ggtitle(paste("Iteration", i, "- error fraction",mismatches/nc,"(",mismatches,"/",nc,")"))
 
 }
-
 
 
